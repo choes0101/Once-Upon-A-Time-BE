@@ -11,3 +11,25 @@ spring:
       hibernate:
         format_sql: true
     show-sql: false
+jwt:
+  secret: 6oL5THX9RTdzGHLLtlJdNhAfSKJM8Kq1jCzvf8zTUK/tvTgpAXoIBEh/IYQiwoQi
+
+kakao:
+  client-id: test-client-id
+  redirect-uri: http://localhost:8080/test
+
+aws:
+  region: ap-northeast-2
+  s3:
+    bucket: test-bucket
+    presign-ttl-seconds: 900
+  sqs:
+    queue-url: http://localhost:4566/000000000000/test-queue
+
+supabase:
+  url: http://localhost:54321
+  service-key: test-service-key
+  buckets:
+    audio: test-audio
+    character: test-character
+    image: test-image
