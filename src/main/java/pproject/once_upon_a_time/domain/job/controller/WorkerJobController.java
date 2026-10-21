@@ -54,7 +54,15 @@ public class WorkerJobController {
         workerAuthService.validate(workerToken);
         jobService.getJob(jobId);
 
-        if (!jobService.markSucceeded(jobId, request.getOutputKey())) {
+        boolean updated;
+        try {
+            updated = jobService.markSucceeded(jobId, request.getOutputKey());
+        } catch (CustomException e) {
+            jobService.markFailed(jobId, e.getMessage());
+            throw e;
+        }
+
+        if (!updated) {
             throw new CustomException(ErrorCode.JOB_STATUS_NOT_ALLOWED);
         }
 

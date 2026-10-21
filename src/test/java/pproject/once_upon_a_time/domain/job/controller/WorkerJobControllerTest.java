@@ -23,9 +23,11 @@ import pproject.once_upon_a_time.global.exception.GlobalExceptionHandler;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -113,6 +115,24 @@ class WorkerJobControllerTest {
                 .content("{\"outputKey\":\"jobs/result.json\"}"))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.error.code").value(ErrorCode.JOB_STATUS_NOT_ALLOWED.getCode()));
+    }
+
+    @Test
+    void markSucceeded_processingFails_markFailed() throws Exception {
+        UUID jobId = UUID.randomUUID();
+        Job job = buildJob(jobId, JobType.STORY, JobStatus.RUNNING, JobTargetType.STORY, 1L, "jobs/input.json", null, null);
+
+        doNothing().when(workerAuthService).validate("token");
+        when(jobService.getJob(jobId)).thenReturn(job);
+        when(jobService.markSucceeded(jobId, "jobs/result.json"))
+                .thenThrow(new CustomException(ErrorCode.INVALID_INPUT, "동화 결과 파싱 실패"));
+
+        mockMvc.perform(post("/api/v1/internal/jobs/{jobId}/succeeded", jobId)
+                        .header("X-Worker-Token", "token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"outputKey\":\"jobs/result.json\"}"))
+                .andExpect(status().isBadRequest());
+        verify(jobService).markFailed(eq(jobId), anyString());
     }
 
     @Test
