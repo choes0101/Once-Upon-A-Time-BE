@@ -40,7 +40,7 @@ public class AdminService {
     }
 
     public List<AdminStoryResponseDto> getAllStories() {
-        return storyRepository.findAll().stream()
+        return storyRepository.findAllWithMember().stream()
             .map(AdminStoryResponseDto::from)
             .collect(Collectors.toList());
     }
